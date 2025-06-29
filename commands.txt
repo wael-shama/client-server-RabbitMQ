@@ -1,0 +1,5 @@
+addItem name John
+addItem age 30
+getItem name
+getAllItems
+deleteItem age
