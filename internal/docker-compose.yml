@@ -1,0 +1,39 @@
+version: '3.8'
+services:
+  rabbitmq:
+    image: rabbitmq:3-management
+    hostname: rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "status"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+  server:
+    build:
+      context: .
+      dockerfile: Dockerfile.server
+    environment:
+      RABBITMQ_URL: "amqp://guest:guest@rabbitmq:5672/" 
+    volumes:
+      - ./server-logs:/logs
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+
+  client:
+    build:
+      context: .
+      dockerfile: Dockerfile.client
+    environment:
+      RABBITMQ_URL: "amqp://guest:guest@rabbitmq:5672/"  
+    volumes:
+      - ./commands.txt:/commands.txt
+    depends_on:
+      - rabbitmq
+    stdin_open: true
+    tty: true
